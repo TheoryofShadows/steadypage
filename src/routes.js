@@ -7,10 +7,12 @@ const { makeSlug, isValidUrl } = require('./slug');
 const { monitorLimit } = require('./plans');
 const { layout, escapeHtml } = require('./html');
 
-const PRO_LOOKUP = 'steadypage-pro';
-const PRO_CENTS = 700;
+const PRO_LOOKUP = 'steadypage-pro-8';
+const PRO_CENTS = 800;
+const PRO_PRICE_ID = 'price_1UJkAcCJ8WGcNSoK6Hsdx8Bg';
 
 async function resolveProPrice(stripe) {
+  if (PRO_PRICE_ID) return PRO_PRICE_ID;
   try {
     const listed = await stripe.prices.list({ lookup_keys: [PRO_LOOKUP], active: true, limit: 1 });
     const hit = (listed.data || []).find((p) => p.unit_amount === PRO_CENTS);
@@ -52,7 +54,7 @@ function createRouter(db, stripe) {
         </div>
         <div class="card">
           <h3>Pro</h3>
-          <p class="muted">$7 / month</p>
+          <p class="muted">$8 / month</p>
           <ul class="pricing">
             <li>Up to 20 monitors</li>
             <li>Same 60s checks</li>
@@ -181,7 +183,7 @@ function createRouter(db, stripe) {
       ? `<div class="card"><p class="ok">Plan: <strong>Pro</strong> (${monitors.length}/${limit} monitors)</p></div>`
       : `<div class="card">
           <p>Plan: <strong>Free</strong> (${monitors.length}/${limit} monitor). Upgrade to Pro for up to 20 monitors.</p>
-          <form method="post" action="/billing/checkout"><button class="primary" type="submit">Upgrade to Pro — $7/mo</button></form>
+          <form method="post" action="/billing/checkout"><button class="primary" type="submit">Upgrade to Pro — $8/mo</button></form>
           <p class="muted">Stripe Checkout. Cancel anytime from your Stripe customer portal (configure in Dashboard).</p>
         </div>`;
 
