@@ -7,6 +7,20 @@ const { makeSlug, isValidUrl } = require('./slug');
 const { monitorLimit } = require('./plans');
 const { layout, escapeHtml } = require('./html');
 
+const PRO_LOOKUP = 'steadypage-pro';
+const PRO_CENTS = 700;
+
+async function resolveProPrice(stripe) {
+  try {
+    const listed = await stripe.prices.list({ lookup_keys: [PRO_LOOKUP], active: true, limit: 1 });
+    const hit = (listed.data || []).find((p) => p.unit_amount === PRO_CENTS);
+    if (hit) return hit.id;
+  } catch (err) {
+    console.error('[stripe price lookup]', err.message);
+  }
+  return process.env.STRIPE_PRICE_PRO || '';
+}
+
 function createRouter(db, stripe) {
   const router = express.Router();
   const APP_URL = (process.env.APP_URL || 'http://localhost:3000').replace(/\/$/, '');
@@ -38,7 +52,7 @@ function createRouter(db, stripe) {
         </div>
         <div class="card">
           <h3>Pro</h3>
-          <p class="muted">$9 / month</p>
+          <p class="muted">$7 / month</p>
           <ul class="pricing">
             <li>Up to 20 monitors</li>
             <li>Same 60s checks</li>
@@ -167,7 +181,7 @@ function createRouter(db, stripe) {
       ? `<div class="card"><p class="ok">Plan: <strong>Pro</strong> (${monitors.length}/${limit} monitors)</p></div>`
       : `<div class="card">
           <p>Plan: <strong>Free</strong> (${monitors.length}/${limit} monitor). Upgrade to Pro for up to 20 monitors.</p>
-          <form method="post" action="/billing/checkout"><button class="primary" type="submit">Upgrade to Pro — $9/mo</button></form>
+          <form method="post" action="/billing/checkout"><button class="primary" type="submit">Upgrade to Pro — $7/mo</button></form>
           <p class="muted">Stripe Checkout. Cancel anytime from your Stripe customer portal (configure in Dashboard).</p>
         </div>`;
 
@@ -278,7 +292,8 @@ function createRouter(db, stripe) {
   });
 
   router.post('/billing/checkout', requireAuth, async (req, res) => {
-    if (!stripe || !process.env.STRIPE_PRICE_PRO) {
+    const price = stripe ? await resolveProPrice(stripe) : '';
+    if (!stripe || !price) {
       return res.status(503).type('html').send(layout({
         title: 'Billing unavailable',
         user: req.user,
@@ -298,7 +313,7 @@ function createRouter(db, stripe) {
       const session = await stripe.checkout.sessions.create({
         mode: 'subscription',
         customer: customerId,
-        line_items: [{ price: process.env.STRIPE_PRICE_PRO, quantity: 1 }],
+        line_items: [{ price, quantity: 1 }],
         success_url: `${APP_URL}/dashboard?upgraded=1`,
         cancel_url: `${APP_URL}/dashboard`,
         metadata: { user_id: req.user.id },
