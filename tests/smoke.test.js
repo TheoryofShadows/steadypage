@@ -134,9 +134,15 @@ describe('SteadyPage smoke', () => {
 
   it('url validation', () => {
     assert.ok(isValidUrl('https://example.com'));
-    assert.ok(isValidUrl('http://localhost:3000/health'));
+    assert.ok(!isValidUrl('http://localhost:3000/health'));
+    assert.ok(!isValidUrl('http://169.254.169.254/latest/meta-data/'));
+    assert.ok(!isValidUrl('http://10.1.2.3/'));
+    assert.ok(!isValidUrl('http://192.168.0.1/'));
     assert.ok(!isValidUrl('ftp://x'));
     assert.ok(!isValidUrl('not-a-url'));
+    process.env.ALLOW_LOCAL_MONITORS = '1';
+    assert.ok(isValidUrl('http://127.0.0.1:3000/health'));
+    delete process.env.ALLOW_LOCAL_MONITORS;
   });
 
   it('checkOnce against example.com', async () => {
