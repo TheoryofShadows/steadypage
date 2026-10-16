@@ -158,4 +158,11 @@ describe('SteadyPage smoke', () => {
     ).run(id, `pro${Date.now()}@example.com`, hashPassword('password123'), `pro-${Date.now()}`);
     assert.equal(monitorLimit('pro'), 20);
   });
+  it('unknown routes return 404 and robots.txt is served', async () => {
+    const r = await fetch(base + '/no-such-page', { headers: { accept: 'text/html' } });
+    assert.equal(r.status, 404);
+    const robots = await fetch(base + '/robots.txt');
+    assert.equal(robots.status, 200);
+    assert.match(await robots.text(), /Disallow: \/dashboard/);
+  });
 });

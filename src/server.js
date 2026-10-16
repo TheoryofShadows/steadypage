@@ -24,10 +24,10 @@ function securityHeaders(_req, res, next) {
     "frame-ancestors 'none'",
     "form-action 'self'",
     "img-src 'self' data: https:",
-    "script-src 'self' 'unsafe-inline'",
+    "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com",
     "style-src 'self' 'unsafe-inline'",
     "font-src 'self'",
-    "connect-src 'self'",
+    "connect-src 'self' https://cloudflareinsights.com",
   ].join('; '));
   next();
 }
@@ -57,6 +57,13 @@ function createApp(options = {}) {
   app.use(authMiddleware(db));
   app.use(express.static(path.join(__dirname, '..', 'public')));
   app.use(createRouter(db, stripe));
+
+  app.use((req, res) => {
+    if (req.accepts('html')) {
+      return res.status(404).type('html').send('<!doctype html><meta charset="utf-8"><title>Not found · SteadyPage</title><link rel="stylesheet" href="/styles.css"><main style="max-width:40rem;margin:4rem auto;padding:0 1rem"><h1>Page not found</h1><p><a href="/">Back to SteadyPage</a></p></main>');
+    }
+    res.status(404).json({ error: 'Not found' });
+  });
 
   app.use((err, _req, res, _next) => {
     console.error(err);
