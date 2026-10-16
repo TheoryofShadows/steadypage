@@ -3,3 +3,4 @@ Disallow: /dashboard
 Disallow: /api/
 Disallow: /billing/
 Disallow: /webhooks/
+Sitemap: https://steadypage.theoryofshadows.workers.dev/sitemap.xml
