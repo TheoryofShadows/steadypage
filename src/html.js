@@ -22,6 +22,13 @@ function layout({ title, user, body, flash }) {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>${escapeHtml(title)} · SteadyPage</title>
+  <meta name="description" content="Uptime monitoring and a public status page for indie apps. Free to start, Pro is $8/month." />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="SteadyPage" />
+  <meta property="og:title" content="${escapeHtml(title)} · SteadyPage" />
+  <meta property="og:description" content="Uptime monitoring and a public status page for indie apps. Free to start, Pro is $8/month." />
+  <meta name="twitter:card" content="summary" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
